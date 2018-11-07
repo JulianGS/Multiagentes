@@ -1,0 +1,72 @@
+package examples.prep_exam_2;
+
+import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.ParallelBehaviour;
+import jade.core.behaviours.Behaviour;
+
+public class ejer_1 extends Agent{
+	private static final long serialVersionUID = 1L;	
+	private int n1,n2,n3;
+		
+	protected void setup() {
+		n1 = ((int)(Math.random()*100))
+		n2 = ((int)(Math.random()*100))
+		n3 = ((int)(Math.random()*100))
+		ParallelBehaviour pb1 = new ParallelBehaviour(this,2);
+		pb.addSubBehaviour(new Comp1(this,n1));
+		pb.addSubBehaviour(new Comp2(this,n2));
+		pb.addSubBehaviour(new Comp3(this,n3));		
+		addBehaviour(pb);
+	}
+
+	
+	private class Comp1 extends Behaviour{
+		protected int ejec, restantes;
+		public void onStart(){
+			ejec = 0;
+			restantes = 0;
+		}
+		public void action(){
+			System.out.println("Soy el comportamiento 1");
+			ejec++;
+			restantes = n1 - ejec;			
+			System.out.println("Me quedan "+restantes+" ejecuciones");
+		}
+		public boolean done(){
+			return (ejec==n1);
+		}
+	}//Comp1
+	private class Comp2 extends Behaviour{
+		protected int ejec, restantes;
+		public void onStart(){
+			ejec = 0;
+			restantes = 0;
+		}
+		public void action(){
+			System.out.println("Soy el comportamiento 2");
+			ejec++;
+			restantes = n2 - ejec;			
+			System.out.println("Me quedan "+restantes+" ejecuciones");
+		}
+		public boolean done(){
+			return (ejec==n2);
+		}
+	}//Comp2
+	private class Comp3 extends Behaviour{
+		protected int ejec, restantes;
+		public void onStart(){
+			ejec = 0;
+			restantes = 0;
+		}
+		public void action(){
+			System.out.println("Soy el comportamiento 3");
+			ejec++;
+			restantes = n1 - ejec;			
+			System.out.println("Me quedan "+restantes+" ejecuciones");
+		}
+		public boolean done(){
+			return (ejec==n3);
+		}
+	}//Comp3		
+}//agente
