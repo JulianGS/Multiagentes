@@ -18,90 +18,106 @@ Cada subcomp imprime su nombre y las ejecuciones que le quedan
 
 public class EjTipo extends Agent{
 
-	//Como cada uno se ejecuta en una hebra distinta, hay que declararlos aquí
-	Comp1 sb1, sb2, sb3;
+	//Declarar los behaviour
 	ParallelBehaviour principal;
-	ThreadedBehaviourFactory hebras;
-
-	int finalizado = 0;
+	SubComp sb1, sb2, sb3;
+	ThreadedBehaviourFactory tfb;
 
 	protected void setup(){
-		principal = new ParallelBehaviour(this, ParallelBehaviour.WHEN_ALL);
-		
-		//Crear los subcomportamientos
-		sb1 = new Comp1((int)((Math.random()*100)+1),"1",1,true);
-		sb2 = new Comp1((int)((Math.random()*100)+1),"2",2,false);
-		sb3 = new Comp1((int)((Math.random()*100)+1),"3",3,false);
 
-		hebras = new ThreadedBehaviourFactory();
+		principal = new ParallelBehaviour(this, 2){
+			public int onEnd(){
+				myAgent.doDelete();
+				return 1;
+			}
+		};
+		tfb = new ThreadedBehaviourFactory();
 
-		principal.addSubBehaviour(hebras.wrap(sb1));
-		principal.addSubBehaviour(hebras.wrap(sb2));
-		principal.addSubBehaviour(hebras.wrap(sb3));
+		sb1 = new SubComp(1,(int)((Math.random()*100)+1),true);
+		sb2 = new SubComp(2,(int)((Math.random()*100)+1),false);
+		sb3 = new SubComp(3,(int)((Math.random()*100)+1),false);
+
+		principal.addSubBehaviour(tfb.wrap(sb1));
+		principal.addSubBehaviour(tfb.wrap(sb2));
+		principal.addSubBehaviour(tfb.wrap(sb3));
 
 		addBehaviour(principal);
 	}
 
 	protected void takeDown(){
-		System.out.println("Agente Finalisao");
+		System.out.println("Hasta los huevillos de las hebras. Agente Finalizado");
+		tfb.interrupt();
 	}
 
-	private class Comp1 extends Behaviour{
+	private class SubComp extends Behaviour{
+
+		private int nombre;
 		private int ejecuciones;
-		private String nombre;
-		//A parte de las ejecuciones y el nombre SIEMPRE necesitamos:
-		private int ID;
+		private int llevo;
+
+		//ESTO SIEMPRE EN THREADS
 		private boolean inicial;
+		private SubComp hermano;
 
-		private Comp1 hermano;
-
-		public Comp1(int ejecuciones, String nombre, int ID, boolean inicial){
-			this.ejecuciones = ejecuciones;
+		//Constructor
+		public SubComp(int nombre, int ejecuciones, boolean inicial){
 			this.nombre = nombre;
-			this.ID=ID;
-			this.inicial=inicial;
+			this.ejecuciones = ejecuciones;
+			this.inicial = inicial;
+			this.llevo = 0;
 		}
-		//Antes de hacer el action, compruebo si soy el inicial. Si NO lo soy, me suspendo
-		public void onStart(){
-			
-			//Esto es LA SECCIÓN CRÍTICA
 
-			if(this.ID==1){ //Inicial
-				this.hermano=sb2; //Activo el 2
-			}else if(this.ID == 2){ //Después del 2
-				this.hermano = sb3; //Activo el 3
-			}else if(this.ID == 1){ //Después del 3
-				this.hermano = sb1; //Vuelvo a activar el 1
+		public void onStart(){
+			//En el onStart es donde voy a dar el orden a la sección crítica, es decir, antes de ejecutar el action
+			
+			//Lo primero es ver que comportamiento somos, para asignar quien entra después de nosotros:
+
+			if(this.nombre == 1){
+				this.hermano = sb2;
+			}else if(this.nombre == 2){
+				this.hermano = sb3;
+			}else if(this.nombre == 3){
+				this.hermano = sb1;
+			}else{
+				System.out.println("Error delimitando hermano");
+				myAgent.doDelete();
 			}
 
-			//ESTO SIEMPRE
-			if(!this.inicial){ //Si No soy el inicial, me bloqueo
-				this.block();
+			//Después, si somos el comportamiento 1 o 2, nos bloqueamos.
+			if(!this.inicial){
+				tfb.suspend(this);
 			}
 		}
 
 		public void action(){
-			
-			ejecuciones--;
-			System.out.println("Soy el comprtamiento 1."+nombre+" y me quedan "+ejecuciones+" ejecuciones");
+			//Si he llegado al action es porque estoy dentro de la sección crítica así que hago mi función
+			llevo++;
+			System.out.println("Soy el subcomportamiento "+this.nombre+" y me quedan "+(ejecuciones-llevo)+" ejecuciones");
 
-			//Una vez he hecho mi action, vuelvo a activar al siguiente action, que es mi hermano.
-			this.hermano.restart();
-			//Y me bloqueo para que el acceda a la sección crítica exclusivamente
-			this.block();
+			//Y aviso a mi hermano de que he terminado para que entre él
+			tfb.resume(this.hermano);
+			//Y yo me bloqueo y así salgo de la sección crítica.
+			tfb.suspend(this);
 		}
 
 		public boolean done(){
-			return (ejecuciones<=0);
+			return (llevo>=ejecuciones);
 		}
 
 		public int onEnd(){
-			finalizado++;
-			if(finalizado==2){
-				myAgent.doDelete();
-			}
+			//Cuando salgo de la sección crítica veo que comportamiento se va a ejecutar el tercero: Yo -> Mi hermano -> 3er
+			SubComp tercero = hermano.getHermano();
+			//Y me añado como su hermano después de él
+			tercero.setHermano(this.hermano);
 			return 1;
 		}
-	}
 
+		public SubComp getHermano(){
+			return this.hermano;
+		}
+
+		public void setHermano(SubComp hermano){
+			this.hermano = hermano;
+		}
+	}
 }
