@@ -28,7 +28,7 @@ public class EjTipo extends Agent{
 		principal = new ParallelBehaviour(this, 2){
 			public int onEnd(){
 				myAgent.doDelete();
-				return 1;
+				return super.onEnd();
 			}
 		};
 		tfb = new ThreadedBehaviourFactory();
@@ -47,6 +47,7 @@ public class EjTipo extends Agent{
 	protected void takeDown(){
 		System.out.println("Hasta los huevillos de las hebras. Agente Finalizado");
 		tfb.interrupt();
+		super.takeDown();
 	}
 
 	private class SubComp extends Behaviour{
