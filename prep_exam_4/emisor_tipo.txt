@@ -1,0 +1,24 @@
+Agente{
+  
+  protected void setup(){
+    //añadir comps
+  }
+  Comportamiento{
+    ACLMesaage msj = new ACLMessage(ACLMessage.Performativa);
+    boolean fin = false;
+    S.O.P(myAgent.getName()+"");
+    
+    //Partes del mensaje
+    msj.addReceiver(new AID("nombre",AID.ISLOCALNAME); //Siempre un aid
+    msj.setSender(myAgent.getAID());
+    msj.setLanguaje("str");
+    msj.setContent("cont");
+    
+    myAgent.send(msj);
+    
+    if(msj != null){
+      fin = true;
+    }else{
+      block();
+    }
+  }
