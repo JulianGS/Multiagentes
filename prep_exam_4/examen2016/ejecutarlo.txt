@@ -1,0 +1,1 @@
+-agents "Agente1:comuni.AgentSend(Agente2, 1);Agente2:comuni.AgentSend(Agente3);Agente3:comuni.AgentSend(Agente1)"

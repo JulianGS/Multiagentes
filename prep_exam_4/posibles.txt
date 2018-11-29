@@ -1,0 +1,9 @@
+1
+
+Dada la siguiente lista = {a,b,c,8,9,10}
+Un receptor con dos comportamientos, cada uno en una hebra.
+Un emisor que recoja un elemento de la lista, si este elemento es un número que lo envíe a un receptor, y si no al otro. 
+Cuando la lista esté vacía, el emisor debe enviar un mensaje que matará al receptor y a sus dos hebras.
+
+2
+
