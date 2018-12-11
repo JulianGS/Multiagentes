@@ -1,4 +1,4 @@
-package comuni;
+package examples.examen2016;
 
 import jade.core.AID;
 import jade.core.Agent;
